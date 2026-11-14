@@ -12,15 +12,15 @@ cask "vertex" do
     strategy :github_latest
   end
 
-  depends_on macos: ">= :sequoia"
   depends_on arch: :arm64
+  depends_on macos: :sequoia
 
   app "Vertex.app"
 
-  postflight do
-    system_command "/usr/bin/xattr",
-                   args: ["-dr", "com.apple.quarantine", "#{appdir}/Vertex.app"],
-                   sudo: false
+  postflight_steps do
+    run "/usr/bin/xattr",
+        args: ["-dr", "com.apple.quarantine", "Vertex.app"],
+        base: :appdir
   end
 
   zap trash: [

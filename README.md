@@ -5,17 +5,17 @@ Official [Homebrew](https://brew.sh) tap for [**Vertex**](https://github.com/cic
 ## Installation / Installazione
 
 ```bash
+brew trust cicciocanestro/tap
 brew install --cask cicciocanestro/tap/vertex
 ```
 
-Or in two steps / Oppure in due passaggi:
+Or on Homebrew 4/5/6 (where `brew trust` is not required):
 
 ```bash
-brew tap cicciocanestro/tap
-brew install --cask vertex
+brew install --cask cicciocanestro/tap/vertex
 ```
 
-> **Note on Gatekeeper (ad-hoc signature):** The Cask includes a `postflight` hook that automatically clears the `com.apple.quarantine` extended attribute on `/Applications/Vertex.app`, so Vertex opens directly without the macOS Gatekeeper confirmation dialog.
+> **Note on Gatekeeper (ad-hoc signature):** The Cask includes a `postflight_steps` block that automatically clears the `com.apple.quarantine` extended attribute on `/Applications/Vertex.app`, so Vertex opens directly without the macOS Gatekeeper confirmation dialog.
 
 ## Upgrade / Aggiornamento
 
