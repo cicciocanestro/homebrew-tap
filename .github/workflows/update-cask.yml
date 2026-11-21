@@ -1,0 +1,64 @@
+name: Update Vertex cask
+
+on:
+  schedule:
+    # Hourly: a new Vertex release is picked up within an hour without any
+    # token stored in the Vertex repository.
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout tap
+        uses: actions/checkout@v4
+
+      - name: Resolve latest Vertex release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          latest="$(gh api repos/cicciocanestro/vertex/releases/latest --jq .tag_name)"
+          version="${latest#v}"
+          sha_asset="$(gh api repos/cicciocanestro/vertex/releases/latest \
+            --jq '.assets[] | select(.name | endswith(".sha256")) | .name' | head -n 1)"
+          if [ -z "${sha_asset}" ]; then
+            echo "::error::No .sha256 asset in ${latest}"
+            exit 1
+          fi
+          tmp="$(mktemp -d)"
+          gh release download "${latest}" --repo cicciocanestro/vertex \
+            --pattern "${sha_asset}" --dir "${tmp}"
+          sha="$(awk '{print $1}' "${tmp}/${sha_asset}")"
+          if ! printf '%s' "${sha}" | grep -qE '^[0-9a-f]{64}$'; then
+            echo "::error::Invalid SHA-256 in ${sha_asset}"
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+
+      - name: Update cask if needed
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+          SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          current_version="$(sed -n 's/^  version "\(.*\)"$/\1/p' Casks/vertex.rb)"
+          current_sha="$(sed -n 's/^  sha256 "\(.*\)"$/\1/p' Casks/vertex.rb)"
+          if [ "${VERSION}" = "${current_version}" ] && [ "${SHA}" = "${current_sha}" ]; then
+            echo "Vertex ${VERSION} is already current."
+            exit 0
+          fi
+          sed -i "s/^  version \".*\"$/  version \"${VERSION}\"/" Casks/vertex.rb
+          sed -i "s/^  sha256 \".*\"$/  sha256 \"${SHA}\"/" Casks/vertex.rb
+          git config user.name "Vertex Release"
+          git config user.email "noreply@commandcode.ai"
+          git add Casks/vertex.rb
+          git commit -m "vertex ${VERSION}"
+          git push
