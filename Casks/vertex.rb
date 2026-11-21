@@ -1,6 +1,6 @@
 cask "vertex" do
-  version "1.17.7"
-  sha256 "bd9064c17926e9b3d78363cd832b65ceb088a974f572f2f2e1a02330aaf802f3"
+  version "1.17.8"
+  sha256 "f8d820251eacdc2b219ba92ccf8aa1890a368b4958bbfeb455a92263cdfc8d38"
 
   url "https://github.com/cicciocanestro/vertex/releases/download/v#{version}/Vertex-#{version}-macOS15.0-arm64.dmg"
   name "Vertex"
