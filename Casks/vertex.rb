@@ -19,8 +19,7 @@ cask "vertex" do
 
   postflight_steps do
     run "/usr/bin/xattr",
-        args: ["-dr", "com.apple.quarantine", "Vertex.app"],
-        base: :appdir
+        args: ["-dr", "com.apple.quarantine", "{{appdir}}/Vertex.app"]
   end
 
   zap trash: [
